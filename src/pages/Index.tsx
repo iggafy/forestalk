@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Plus, Tree } from 'lucide-react';
+import { Plus, Trees } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import ForestalkCard from '@/components/ForestalkCard';
 import CreateForestalkModal from '@/components/CreateForestalkModal';
@@ -57,7 +57,7 @@ const Index = () => {
     <div className="min-h-screen bg-forest-dark">
       <header className="py-6 px-4 sm:px-6 flex items-center justify-between border-b border-forest-medium">
         <div className="flex items-center space-x-2">
-          <Tree size={24} className="text-forest-accent" />
+          <Trees size={24} className="text-forest-accent" />
           <h1 className="text-xl sm:text-2xl font-normal text-forest-accent">Forestalk</h1>
         </div>
         <Button 
