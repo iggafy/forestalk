@@ -36,10 +36,14 @@ const AudioWaveform: React.FC<WaveformProps> = ({
       // Calculate if this bar should be active based on progress
       const isActive = progress * numPoints > index;
       
+      // Add animation for playing state
+      const scaleAmount = isPlaying && isActive ? 
+        1.5 + Math.sin(Date.now() / 200 + index * 0.1) * 0.3 : 1;
+      
       return (
         <div
           key={index}
-          className="absolute transform -translate-x-1/2 -translate-y-1/2 transition-all duration-150"
+          className="absolute transform -translate-x-1/2 -translate-y-1/2 transition-all duration-100"
           style={{
             left: `${x}%`,
             top: `${y}%`,
@@ -51,14 +55,40 @@ const AudioWaveform: React.FC<WaveformProps> = ({
                              color.includes('amber') ? '#E2A447' : 
                              color.includes('blue') ? '#6A9CB0' : '#FFFFFF',
             opacity: isActive ? 1 : 0.7,
-            transform: `translateX(-50%) translateY(-50%) rotate(${angle * 180 / Math.PI}deg) scaleY(${isPlaying && isActive ? 1.5 : 1})`,
-            boxShadow: isPlaying ? `0 0 3px ${color === 'bg-white' ? '#EADBC8' : '#E86F50'}` : 'none'
+            transform: `translateX(-50%) translateY(-50%) rotate(${angle * 180 / Math.PI}deg) scaleY(${scaleAmount})`,
+            boxShadow: isPlaying && isActive ? `0 0 3px ${color === 'bg-white' ? '#EADBC8' : '#E86F50'}` : 'none'
           }}
         />
       );
     });
     
     setBarElements(bars);
+    
+    // Add animation frame update for waveform effect
+    let animationFrame: number;
+    if (isPlaying) {
+      const updateAnimation = () => {
+        setBarElements(prev => {
+          return prev.map((bar, i) => {
+            const style = {...bar.props.style};
+            if (progress * numPoints > i) {
+              // Create pulsing wave effect
+              const pulse = 1.5 + Math.sin(Date.now() / 200 + i * 0.1) * 0.3;
+              style.transform = style.transform.replace(/scaleY\([^)]+\)/, `scaleY(${pulse})`);
+            }
+            return React.cloneElement(bar, { style });
+          });
+        });
+        animationFrame = requestAnimationFrame(updateAnimation);
+      };
+      animationFrame = requestAnimationFrame(updateAnimation);
+    }
+    
+    return () => {
+      if (animationFrame) {
+        cancelAnimationFrame(animationFrame);
+      }
+    };
   }, [data, color, isPlaying, progress]);
   
   return (

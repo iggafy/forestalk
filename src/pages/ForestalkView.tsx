@@ -1,7 +1,6 @@
-
 import React, { useState, useEffect, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Play, Pause, Plus } from 'lucide-react';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
+import { ArrowLeft, Play, Pause } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import ForestalkRing from '@/components/ForestalkRing';
 import MoodTag from '@/components/MoodTag';
@@ -10,10 +9,12 @@ import { formatDuration, timeAgo } from '@/utils/audioHelpers';
 import RecordButton from '@/components/RecordButton';
 import { useAudioRecorder } from '@/hooks/useAudioRecorder';
 import { useToast } from '@/hooks/use-toast';
+import ForestalkRingVisual from '@/components/ForestalkRingVisual';
 
 const ForestalkView = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [forestalk, setForestalk] = useState<Forestalk | null>(null);
   const [audioState, setAudioState] = useState<AudioPlayerState>({
     isPlaying: false,
@@ -24,6 +25,13 @@ const ForestalkView = () => {
   const [isRecording, setIsRecording] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const { toast } = useToast();
+  
+  // Auto-open recording mode if URL has action=add-ring
+  useEffect(() => {
+    if (searchParams.get('action') === 'add-ring') {
+      setIsRecording(true);
+    }
+  }, [searchParams]);
   
   const { 
     recorderState, 
@@ -314,6 +322,9 @@ const ForestalkView = () => {
       title: "Ring added",
       description: "Your voice has been added to the Forestalk.",
     });
+    
+    // Remove the action=add-ring from URL
+    navigate(`/forestalk/${id}`);
   };
   
   if (!forestalk) {
@@ -341,7 +352,6 @@ const ForestalkView = () => {
             onClick={toggleRecording}
             className="bg-forest-accent text-forest-dark hover:bg-forest-accent/90"
           >
-            <Plus size={18} className="mr-1" />
             Add Ring
           </Button>
         )}
@@ -406,25 +416,12 @@ const ForestalkView = () => {
           <>
             <div className="relative my-8 flex justify-center">
               <div className="relative w-72 h-72 sm:w-96 sm:h-96">
-                {/* Center dot */}
-                <div className="absolute inset-1/2 transform -translate-x-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-forest-accent z-10" />
-                
-                {/* Render rings from outer to inner */}
-                {forestalk.rings.map((ring, index) => {
-                  const ringIndex = forestalk.rings.length - 1 - index;
-                  return (
-                    <ForestalkRing
-                      key={ring.id}
-                      ring={ring}
-                      index={index}
-                      totalRings={forestalk.rings.length}
-                      isPlaying={audioState.isPlaying && audioState.currentRingIndex === ringIndex}
-                      isSelected={audioState.currentRingIndex === ringIndex}
-                      progress={audioState.progress}
-                      onClick={() => handleRingClick(ringIndex)}
-                    />
-                  );
-                })}
+                {forestalk && (
+                  <ForestalkRingVisual 
+                    forestalk={forestalk} 
+                    isHomePage={false} 
+                  />
+                )}
                 
                 {/* Placeholder audio element for simulation */}
                 <audio 
