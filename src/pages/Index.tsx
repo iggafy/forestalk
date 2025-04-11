@@ -15,17 +15,17 @@ const Index = () => {
     return [
       {
         id: 'forestalk-1',
-        title: 'Sounds from my morning walk',
-        treeName: 'Gentle Maple',
-        mood: 'calm',
+        title: 'Tell me about a dream',
+        treeName: 'Curious Fir',
+        mood: 'curious',
         rings: generateMockForestalkRings(3),
         createdAt: new Date(Date.now() - 86400000 * 2), // 2 days ago
         lastActive: new Date(Date.now() - 3600000 * 6) // 6 hours ago
       },
       {
         id: 'forestalk-2',
-        title: 'Thoughts on mindfulness',
-        treeName: 'Wise Oak',
+        title: 'Nice to take it easy today',
+        treeName: 'Content Cedar',
         mood: 'reflective',
         rings: generateMockForestalkRings(5),
         createdAt: new Date(Date.now() - 86400000 * 5), // 5 days ago
@@ -33,12 +33,21 @@ const Index = () => {
       },
       {
         id: 'forestalk-3',
-        title: 'Birds singing in my backyard',
-        treeName: 'Serene Willow',
-        mood: 'joyful',
+        title: "Life's big questions",
+        treeName: 'Thoughtful Spruce',
+        mood: 'reflective',
         rings: generateMockForestalkRings(2),
         createdAt: new Date(Date.now() - 3600000 * 12), // 12 hours ago
         lastActive: new Date(Date.now() - 3600000 * 8) // 8 hours ago
+      },
+      {
+        id: 'forestalk-4',
+        title: "I feel like I'm fading away",
+        treeName: 'Melancholy Oak',
+        mood: 'melancholic',
+        rings: generateMockForestalkRings(4),
+        createdAt: new Date(Date.now() - 86400000 * 3), // 3 days ago
+        lastActive: new Date(Date.now() - 3600000 * 10) // 10 hours ago
       },
     ];
   });
@@ -54,30 +63,30 @@ const Index = () => {
   };
   
   return (
-    <div className="min-h-screen bg-forest-dark">
-      <header className="py-6 px-4 sm:px-6 flex items-center justify-between border-b border-forest-medium">
+    <div className="min-h-screen bg-[#1A2A1A] bg-opacity-95">
+      <header className="py-6 px-4 sm:px-6 flex items-center justify-between border-b border-forest-medium/30">
         <div className="flex items-center space-x-2">
           <Trees size={24} className="text-forest-accent" />
           <h1 className="text-xl sm:text-2xl font-normal text-forest-accent">Forestalk</h1>
         </div>
         <Button 
           onClick={() => setIsModalOpen(true)}
-          className="bg-forest-accent text-forest-dark hover:bg-forest-accent/90"
+          className="bg-forest-accent/20 text-forest-accent border border-forest-accent/30 hover:bg-forest-accent/30"
         >
           <Plus size={18} className="mr-1" />
           New Forestalk
         </Button>
       </header>
       
-      <main className="container max-w-4xl py-8 px-4">
+      <main className="container max-w-7xl py-8 px-4">
         <div className="mb-8">
-          <h2 className="text-xl text-forest-highlight mb-2">The Forest</h2>
+          <h2 className="text-xl text-forest-accent mb-2">The Forest</h2>
           <p className="text-forest-highlight/60">
             Explore voice conversations visualized as tree rings
           </p>
         </div>
         
-        <div className="space-y-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
           {forestalks.map(forestalk => (
             <ForestalkCard key={forestalk.id} forestalk={forestalk} />
           ))}
@@ -90,7 +99,7 @@ const Index = () => {
             </p>
             <Button 
               onClick={() => setIsModalOpen(true)}
-              className="mt-4 bg-forest-accent text-forest-dark hover:bg-forest-accent/90"
+              className="mt-4 bg-forest-accent/20 text-forest-accent border border-forest-accent/30 hover:bg-forest-accent/30"
             >
               <Plus size={18} className="mr-1" />
               New Forestalk
