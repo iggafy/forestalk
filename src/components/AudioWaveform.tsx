@@ -33,8 +33,9 @@ const AudioWaveform: React.FC<WaveformProps> = ({
       const x = 50 + radius * Math.cos(angle);
       const y = 50 + radius * Math.sin(angle);
       
-      // Calculate if this bar should be active based on progress
-      const isActive = progress * numPoints > index;
+      // CHANGED: Calculate if this bar should be active based on progress (inner to outer)
+      // We reverse the calculation now, so we start from the beginning (inner)
+      const isActive = (1 - progress) * numPoints < index;
       
       // Add animation for playing state
       const scaleAmount = isPlaying && isActive ? 
@@ -71,7 +72,8 @@ const AudioWaveform: React.FC<WaveformProps> = ({
         setBarElements(prev => {
           return prev.map((bar, i) => {
             const style = {...bar.props.style};
-            if (progress * numPoints > i) {
+            // CHANGED: Reverse logic to match inner-to-outer approach
+            if ((1 - progress) * numPoints < i) {
               // Create pulsing wave effect
               const pulse = 1.5 + Math.sin(Date.now() / 200 + i * 0.1) * 0.3;
               style.transform = style.transform.replace(/scaleY\([^)]+\)/, `scaleY(${pulse})`);

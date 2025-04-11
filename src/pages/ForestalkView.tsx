@@ -1,15 +1,16 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, Play, Pause } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import ForestalkRing from '@/components/ForestalkRing';
 import MoodTag from '@/components/MoodTag';
-import { Forestalk, AudioPlayerState, ForestalkRing as ForestalkRingType } from '@/types';
+import { Forestalk, AudioPlayerState, ForestalkRing } from '@/types';
 import { formatDuration, timeAgo } from '@/utils/audioHelpers';
 import RecordButton from '@/components/RecordButton';
 import { useAudioRecorder } from '@/hooks/useAudioRecorder';
 import { useToast } from '@/hooks/use-toast';
 import ForestalkRingVisual from '@/components/ForestalkRingVisual';
+import { getForestalkById, addRingToForestalk } from '@/api/forestalkApi';
 
 const ForestalkView = () => {
   const { id } = useParams<{ id: string }>();
@@ -23,6 +24,8 @@ const ForestalkView = () => {
   });
   
   const [isRecording, setIsRecording] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const { toast } = useToast();
   
@@ -37,139 +40,57 @@ const ForestalkView = () => {
     recorderState, 
     startRecording, 
     stopRecording,
-    createForestalkRing,
     error: recordingError
   } = useAudioRecorder();
   
-  // Fetch forestalk data
+  // Fetch forestalk data from Supabase
   useEffect(() => {
-    // In a real app, this would be an API call
-    // For now, we'll use mock data
-    const mockForestalks: Forestalk[] = [
-      {
-        id: 'forestalk-1',
-        title: 'Sounds from my morning walk',
-        treeName: 'Gentle Maple',
-        mood: 'calm',
-        rings: [
-          {
-            id: 'ring-1',
-            audioUrl: '',
-            duration: 45,
-            waveform: Array.from({ length: 100 }, () => 5 + Math.random() * 25),
-            createdAt: new Date(Date.now() - 86400000 * 3),
-            color: 'bg-forest-wave-green'
-          },
-          {
-            id: 'ring-2',
-            audioUrl: '',
-            duration: 60,
-            waveform: Array.from({ length: 100 }, () => 5 + Math.random() * 25),
-            createdAt: new Date(Date.now() - 86400000 * 2),
-            color: 'bg-forest-wave-red'
-          },
-          {
-            id: 'ring-3',
-            audioUrl: '',
-            duration: 30,
-            waveform: Array.from({ length: 100 }, () => 5 + Math.random() * 25),
-            createdAt: new Date(Date.now() - 86400000),
-            color: 'bg-forest-wave-amber'
-          }
-        ],
-        createdAt: new Date(Date.now() - 86400000 * 3),
-        lastActive: new Date(Date.now() - 86400000)
-      },
-      {
-        id: 'forestalk-2',
-        title: 'Thoughts on mindfulness',
-        treeName: 'Wise Oak',
-        mood: 'reflective',
-        rings: [
-          {
-            id: 'ring-1',
-            audioUrl: '',
-            duration: 80,
-            waveform: Array.from({ length: 100 }, () => 5 + Math.random() * 25),
-            createdAt: new Date(Date.now() - 86400000 * 5),
-            color: 'bg-forest-wave-blue'
-          },
-          {
-            id: 'ring-2',
-            audioUrl: '',
-            duration: 45,
-            waveform: Array.from({ length: 100 }, () => 5 + Math.random() * 25),
-            createdAt: new Date(Date.now() - 86400000 * 4),
-            color: 'bg-forest-wave-amber'
-          },
-          {
-            id: 'ring-3',
-            audioUrl: '',
-            duration: 65,
-            waveform: Array.from({ length: 100 }, () => 5 + Math.random() * 25),
-            createdAt: new Date(Date.now() - 86400000 * 3),
-            color: 'bg-forest-wave-red'
-          },
-          {
-            id: 'ring-4',
-            audioUrl: '',
-            duration: 50,
-            waveform: Array.from({ length: 100 }, () => 5 + Math.random() * 25),
-            createdAt: new Date(Date.now() - 86400000 * 2),
-            color: 'bg-forest-wave-green'
-          },
-          {
-            id: 'ring-5',
-            audioUrl: '',
-            duration: 40,
-            waveform: Array.from({ length: 100 }, () => 5 + Math.random() * 25),
-            createdAt: new Date(Date.now() - 86400000),
-            color: 'bg-forest-wave-blue'
-          }
-        ],
-        createdAt: new Date(Date.now() - 86400000 * 5),
-        lastActive: new Date(Date.now() - 86400000)
-      },
-      {
-        id: 'forestalk-3',
-        title: 'Birds singing in my backyard',
-        treeName: 'Serene Willow',
-        mood: 'joyful',
-        rings: [
-          {
-            id: 'ring-1',
-            audioUrl: '',
-            duration: 35,
-            waveform: Array.from({ length: 100 }, () => 5 + Math.random() * 25),
-            createdAt: new Date(Date.now() - 86400000),
-            color: 'bg-forest-wave-amber'
-          },
-          {
-            id: 'ring-2',
-            audioUrl: '',
-            duration: 55,
-            waveform: Array.from({ length: 100 }, () => 5 + Math.random() * 25),
-            createdAt: new Date(Date.now() - 43200000),
-            color: 'bg-forest-wave-green'
-          }
-        ],
-        createdAt: new Date(Date.now() - 86400000),
-        lastActive: new Date(Date.now() - 43200000)
+    const fetchForestalk = async () => {
+      setIsLoading(true);
+      try {
+        if (!id) {
+          navigate('/');
+          return;
+        }
+        
+        const data = await getForestalkById(id);
+        
+        if (!data) {
+          toast({
+            title: "Not found",
+            description: "This Forestalk doesn't exist or has been removed",
+            variant: "destructive"
+          });
+          navigate('/');
+          return;
+        }
+        
+        setForestalk(data);
+      } catch (error) {
+        console.error('Error fetching forestalk:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load Forestalk",
+          variant: "destructive"
+        });
+        navigate('/');
+      } finally {
+        setIsLoading(false);
       }
-    ];
+    };
     
-    const found = mockForestalks.find(f => f.id === id);
-    
-    if (found) {
-      setForestalk(found);
-    } else {
-      navigate('/');
-    }
-  }, [id, navigate]);
+    fetchForestalk();
+  }, [id, navigate, toast]);
   
   // Audio playback control
   const playRing = (index: number) => {
     if (!forestalk) return;
+    
+    if (audioRef.current) {
+      // Set the audio source to the actual ring audio
+      audioRef.current.src = forestalk.rings[index].audioUrl;
+      audioRef.current.load();
+    }
     
     setAudioState({
       isPlaying: true,
@@ -177,21 +98,27 @@ const ForestalkView = () => {
       progress: 0
     });
     
-    // In a real app, we would play the actual audio file
     startPlaybackSimulation(forestalk.rings[index].duration);
   };
   
   const playAllRings = () => {
     if (!forestalk || forestalk.rings.length === 0) return;
     
+    // CHANGED: Start playback from the innermost ring (last in the array)
+    const startIndex = forestalk.rings.length - 1;
+    
+    if (audioRef.current) {
+      audioRef.current.src = forestalk.rings[startIndex].audioUrl;
+      audioRef.current.load();
+    }
+    
     setAudioState({
       isPlaying: true,
-      currentRingIndex: 0,
+      currentRingIndex: startIndex,
       progress: 0
     });
     
-    // In a real app, we would play the actual audio files in sequence
-    startPlaybackSimulation(forestalk.rings[0].duration);
+    startPlaybackSimulation(forestalk.rings[startIndex].duration);
   };
   
   const startPlaybackSimulation = (duration: number) => {
@@ -216,9 +143,12 @@ const ForestalkView = () => {
       audio.onended = () => {
         clearInterval(intervalId);
         setAudioState(prev => {
-          const nextRingIndex = prev.currentRingIndex !== null ? prev.currentRingIndex + 1 : null;
+          if (!forestalk) return prev;
           
-          if (nextRingIndex !== null && forestalk && nextRingIndex < forestalk.rings.length) {
+          // CHANGED: Go to the next ring (from inner to outer, i.e., from most recent to oldest)
+          const nextRingIndex = prev.currentRingIndex !== null ? prev.currentRingIndex - 1 : null;
+          
+          if (nextRingIndex !== null && nextRingIndex >= 0) {
             // Play next ring
             setTimeout(() => {
               playRing(nextRingIndex);
@@ -293,44 +223,63 @@ const ForestalkView = () => {
     stopRecording();
   };
   
-  const handleSaveRecording = () => {
-    if (!forestalk) return;
+  const handleSaveRecording = async () => {
+    if (!forestalk || !recorderState.audioFile) return;
     
-    const newRing = createForestalkRing();
+    setIsSaving(true);
     
-    if (!newRing) {
+    try {
+      const newRing = await addRingToForestalk(
+        forestalk.id,
+        recorderState.audioFile,
+        recorderState.recordingTime
+      );
+      
+      if (!newRing) {
+        throw new Error("Failed to add ring");
+      }
+      
+      // Add the new ring to the forestalk
+      const updatedForestalk = {
+        ...forestalk,
+        rings: [...forestalk.rings, newRing],
+        lastActive: new Date()
+      };
+      
+      setForestalk(updatedForestalk);
+      setIsRecording(false);
+      
+      toast({
+        title: "Ring added",
+        description: "Your voice has been added to the Forestalk",
+      });
+      
+      // Remove the action=add-ring from URL
+      navigate(`/forestalk/${id}`);
+    } catch (error) {
+      console.error('Error saving recording:', error);
       toast({
         title: "Error",
-        description: "Failed to save recording. Please try again.",
+        description: "Failed to save your recording. Please try again.",
         variant: "destructive"
       });
-      return;
+    } finally {
+      setIsSaving(false);
     }
-    
-    // Add the new ring to the forestalk
-    const updatedRings = [...forestalk.rings, newRing];
-    const updatedForestalk = {
-      ...forestalk,
-      rings: updatedRings,
-      lastActive: new Date()
-    };
-    
-    setForestalk(updatedForestalk);
-    setIsRecording(false);
-    
-    toast({
-      title: "Ring added",
-      description: "Your voice has been added to the Forestalk.",
-    });
-    
-    // Remove the action=add-ring from URL
-    navigate(`/forestalk/${id}`);
   };
+  
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-forest-dark flex items-center justify-center">
+        <div className="animate-pulse text-forest-accent">Loading...</div>
+      </div>
+    );
+  }
   
   if (!forestalk) {
     return (
       <div className="min-h-screen bg-forest-dark flex items-center justify-center">
-        <div className="animate-pulse text-forest-accent">Loading...</div>
+        <div className="text-forest-accent">Forestalk not found</div>
       </div>
     );
   }
@@ -398,15 +347,17 @@ const ForestalkView = () => {
                   <Button 
                     variant="outline" 
                     onClick={() => setIsRecording(false)}
+                    disabled={isSaving}
                     className="flex-1 border-forest-light/30 text-forest-highlight"
                   >
                     Cancel
                   </Button>
                   <Button 
                     onClick={handleSaveRecording}
+                    disabled={isSaving}
                     className="flex-1 bg-forest-accent text-forest-dark hover:bg-forest-accent/90"
                   >
-                    Add to Forestalk
+                    {isSaving ? "Saving..." : "Add to Forestalk"}
                   </Button>
                 </div>
               </div>
@@ -423,10 +374,9 @@ const ForestalkView = () => {
                   />
                 )}
                 
-                {/* Placeholder audio element for simulation */}
+                {/* Audio element for playback */}
                 <audio 
                   ref={audioRef}
-                  src="/lovable-uploads/3271187c-02d8-43e8-b725-d837d841b54e.png" 
                   preload="auto"
                   style={{ display: 'none' }}
                 />
@@ -449,7 +399,7 @@ const ForestalkView = () => {
               
               {audioState.currentRingIndex !== null && (
                 <div className="text-forest-highlight/80 text-sm">
-                  {audioState.currentRingIndex + 1} / {forestalk.rings.length}
+                  Ring {forestalk.rings.length - audioState.currentRingIndex} / {forestalk.rings.length}
                 </div>
               )}
             </div>
@@ -457,36 +407,42 @@ const ForestalkView = () => {
             <div className="mt-10">
               <h3 className="text-lg text-forest-accent mb-4">Rings</h3>
               <div className="space-y-2">
-                {forestalk.rings.map((ring, index) => (
-                  <div 
-                    key={ring.id}
-                    className={`p-3 rounded-md flex items-center justify-between cursor-pointer 
-                               ${audioState.currentRingIndex === index 
+                {/* CHANGED: Display rings from newest (outer) to oldest (inner) */}
+                {[...forestalk.rings].map((ring, displayIndex) => {
+                  const index = forestalk.rings.length - 1 - displayIndex;
+                  const isActiveRing = audioState.currentRingIndex === index;
+                  
+                  return (
+                    <div 
+                      key={ring.id}
+                      className={`p-3 rounded-md flex items-center justify-between cursor-pointer 
+                               ${isActiveRing 
                                   ? 'bg-forest-medium' 
                                   : 'bg-forest-medium/40 hover:bg-forest-medium/70'}`}
-                    onClick={() => handleRingClick(index)}
-                  >
-                    <div className="flex items-center">
-                      <div 
-                        className={`w-3 h-3 rounded-full mr-3 ${ring.color}`}
-                      />
-                      <div>
-                        <div className="text-forest-highlight">
-                          Ring {index + 1}
-                        </div>
-                        <div className="text-xs text-forest-highlight/60">
-                          {formatDuration(ring.duration)} • {timeAgo(ring.createdAt)}
+                      onClick={() => handleRingClick(index)}
+                    >
+                      <div className="flex items-center">
+                        <div 
+                          className={`w-3 h-3 rounded-full mr-3 ${ring.color}`}
+                        />
+                        <div>
+                          <div className="text-forest-highlight">
+                            Ring {forestalk.rings.length - index}
+                          </div>
+                          <div className="text-xs text-forest-highlight/60">
+                            {formatDuration(ring.duration)} • {timeAgo(ring.createdAt)}
+                          </div>
                         </div>
                       </div>
+                      
+                      {isActiveRing && audioState.isPlaying ? (
+                        <Pause size={16} className="text-forest-highlight/80" />
+                      ) : (
+                        <Play size={16} className="text-forest-highlight/80" />
+                      )}
                     </div>
-                    
-                    {audioState.currentRingIndex === index && audioState.isPlaying ? (
-                      <Pause size={16} className="text-forest-highlight/80" />
-                    ) : (
-                      <Play size={16} className="text-forest-highlight/80" />
-                    )}
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           </>

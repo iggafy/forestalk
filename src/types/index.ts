@@ -7,7 +7,21 @@ export type ForestalkMood =
   | "hopeful" 
   | "melancholic" 
   | "joyful" 
-  | "grateful";
+  | "grateful"
+  | "anxious"
+  | "frustrated"
+  | "excited"
+  | "peaceful"
+  | "passionate"
+  | "nostalgic"
+  | "confused"
+  | "content"
+  | "determined"
+  | "empathetic"
+  | "energetic"
+  | "gloomy"
+  | "serene"
+  | "worried";
 
 export type ForestalkRing = {
   id: string;
@@ -55,3 +69,28 @@ export interface AudioPlayerState {
   currentRingIndex: number | null;
   progress: number;
 }
+
+// Database types that match our Supabase schema
+export type DbForestalk = {
+  id: string;
+  title: string;
+  tree_name: string;
+  mood: ForestalkMood;
+  created_at: string;
+  last_active: string;
+};
+
+export type DbRing = {
+  id: string;
+  forestalk_id: string;
+  audio_url: string;
+  waveform: number[];
+  duration: number;
+  color: string;
+  created_at: string;
+};
+
+// Type for the filter state
+export type ForestalkFilter = {
+  mood: ForestalkMood | 'all';
+};

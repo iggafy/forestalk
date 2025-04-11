@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Play, Pause, PlusCircle } from 'lucide-react';
+import { Play, Pause } from 'lucide-react';
 import { Forestalk } from '@/types';
 import AudioWaveform from './AudioWaveform';
 import { Link } from 'react-router-dom';
@@ -26,7 +26,8 @@ const ForestalkRingVisual: React.FC<ForestalkRingVisualProps> = ({ forestalk, is
       setCurrentRingIndex(null);
     } else {
       setIsPlaying(true);
-      setCurrentRingIndex(0);
+      // CHANGED: Start from innermost ring (last one in the array)
+      setCurrentRingIndex(forestalk.rings.length - 1);
       // In a real app, this would trigger actual audio playback
     }
   };
@@ -39,9 +40,9 @@ const ForestalkRingVisual: React.FC<ForestalkRingVisualProps> = ({ forestalk, is
       interval = window.setInterval(() => {
         setPlayProgress(prev => {
           if (prev >= 1) {
-            // Move to next ring or stop
-            const nextIndex = currentRingIndex + 1;
-            if (nextIndex < forestalk.rings.length) {
+            // CHANGED: Move to next ring or stop (going from inner to outer)
+            const nextIndex = currentRingIndex - 1;
+            if (nextIndex >= 0) {
               setCurrentRingIndex(nextIndex);
               return 0;
             } else {
@@ -62,9 +63,11 @@ const ForestalkRingVisual: React.FC<ForestalkRingVisualProps> = ({ forestalk, is
   
   // Draw multiple concentric rings with waveforms
   const renderRings = () => {
-    return forestalk.rings.map((ring, index) => {
+    // CHANGED: We now draw the rings in reverse order, so that the oldest ring is the innermost
+    return [...forestalk.rings].reverse().map((ring, index) => {
+      const actualIndex = forestalk.rings.length - 1 - index;
       const ringSize = 100 - (index * (70 / forestalk.rings.length));
-      const isActiveRing = currentRingIndex === index;
+      const isActiveRing = currentRingIndex === actualIndex;
       
       return (
         <div
@@ -74,14 +77,14 @@ const ForestalkRingVisual: React.FC<ForestalkRingVisualProps> = ({ forestalk, is
             width: `${ringSize}%`,
             height: `${ringSize}%`,
             opacity: isActiveRing ? 1 : isHovered ? 0.9 : 0.7,
-            zIndex: forestalk.rings.length - index,
+            zIndex: index + 1, // Reversed z-index
             cursor: 'pointer',
             transform: isActiveRing ? 'translate(-50%, -50%) scale(1.02)' : 'translate(-50%, -50%) scale(1)'
           }}
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
-            setCurrentRingIndex(index);
+            setCurrentRingIndex(actualIndex);
             setIsPlaying(true);
             setPlayProgress(0);
           }}
@@ -114,7 +117,7 @@ const ForestalkRingVisual: React.FC<ForestalkRingVisualProps> = ({ forestalk, is
       {renderRings()}
       
       {/* Play/Pause button overlay */}
-      {(isHovered || isPlaying) && isHomePage && (
+      {(isHovered || isPlaying) && (
         <div 
           className="absolute inset-0 flex items-center justify-center z-20"
           onClick={togglePlayback}
@@ -125,16 +128,6 @@ const ForestalkRingVisual: React.FC<ForestalkRingVisualProps> = ({ forestalk, is
             {isPlaying ? <Pause size={20} /> : <Play size={20} className="ml-1" />}
           </button>
         </div>
-      )}
-      
-      {/* Add Ring button for home page */}
-      {isHovered && isHomePage && (
-        <Link 
-          to={`/forestalk/${forestalk.id}?action=add-ring`}
-          className="absolute bottom-2 right-2 z-30 w-8 h-8 rounded-full bg-forest-dark/70 flex items-center justify-center text-forest-accent hover:bg-forest-dark/90 transition-all"
-        >
-          <PlusCircle size={18} />
-        </Link>
       )}
     </div>
   );
