@@ -154,14 +154,14 @@ export const createForestalk = async (
     const colors = ["bg-forest-wave-red", "bg-forest-wave-green", "bg-forest-wave-amber", "bg-forest-wave-blue"];
     const color = colors[Math.floor(Math.random() * colors.length)];
     
-    // 5. Insert the ring record
+    // 5. Insert the ring record - Convert duration to integer to fix the error
     const { data: ringData, error: ringError } = await supabase
       .from('rings')
       .insert({
         forestalk_id: forestalkData.id,
         audio_url: publicUrl,
         waveform,
-        duration,
+        duration: Math.round(duration), // Convert floating point to integer
         color
       })
       .select()
@@ -220,14 +220,14 @@ export const addRingToForestalk = async (
     const colors = ["bg-forest-wave-red", "bg-forest-wave-green", "bg-forest-wave-amber", "bg-forest-wave-blue"];
     const color = colors[Math.floor(Math.random() * colors.length)];
     
-    // 4. Insert the ring record
+    // 4. Insert the ring record - Convert duration to integer to fix the error
     const { data: ringData, error: ringError } = await supabase
       .from('rings')
       .insert({
         forestalk_id: forestalkId,
         audio_url: publicUrl,
         waveform,
-        duration,
+        duration: Math.round(duration), // Convert floating point to integer
         color
       })
       .select()
