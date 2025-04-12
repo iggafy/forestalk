@@ -178,6 +178,69 @@ const ForestalkDetailView: React.FC<ForestalkDetailViewProps> = ({ forestalk }) 
           />
         </div>
       </div>
+      
+      <div className="flex justify-center items-center space-x-4 mt-6">
+        <Button
+          variant="outline"
+          size="icon"
+          className="w-12 h-12 rounded-full border-forest-light/30"
+          onClick={togglePlayback}
+        >
+          {audioState.isPlaying ? (
+            <Pause size={20} className="text-forest-highlight" />
+          ) : (
+            <Play size={20} className="text-forest-highlight ml-1" />
+          )}
+        </Button>
+        
+        {audioState.currentRingIndex !== null && (
+          <div className="text-forest-highlight/80 text-sm">
+            Ring {forestalk.rings.length - audioState.currentRingIndex} / {forestalk.rings.length}
+          </div>
+        )}
+      </div>
+      
+      <div className="mt-10">
+        <h3 className="text-lg text-forest-accent mb-4">Rings</h3>
+        <div className="space-y-2">
+          {/* Display rings from newest (outer) to oldest (inner) */}
+          {[...forestalk.rings].map((ring, displayIndex) => {
+            const index = forestalk.rings.length - 1 - displayIndex;
+            const isActiveRing = audioState.currentRingIndex === index;
+            
+            return (
+              <div 
+                key={ring.id}
+                className={p-3 rounded-md flex items-center justify-between cursor-pointer 
+                         ${isActiveRing 
+                            ? 'bg-forest-medium' 
+                            : 'bg-forest-medium/40 hover:bg-forest-medium/70'}}
+                onClick={() => handleRingClick(index)}
+              >
+                <div className="flex items-center">
+                  <div 
+                    className={w-3 h-3 rounded-full mr-3 ${ring.color}}
+                  />
+                  <div>
+                    <div className="text-forest-highlight">
+                      Ring {forestalk.rings.length - index}
+                    </div>
+                    <div className="text-xs text-forest-highlight/60">
+                      {formatDuration(ring.duration)} • {timeAgo(ring.createdAt)}
+                    </div>
+                  </div>
+                </div>
+                
+                {isActiveRing && audioState.isPlaying ? (
+                  <Pause size={16} className="text-forest-highlight/80" />
+                ) : (
+                  <Play size={16} className="text-forest-highlight/80" />
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
     </div>
   );
 };
