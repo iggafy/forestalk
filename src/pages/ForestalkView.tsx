@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, Play, Pause } from 'lucide-react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { ArrowLeft, Play, Pause, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import MoodTag from '@/components/MoodTag';
 import { Forestalk, AudioPlayerState, ForestalkRing } from '@/types';
@@ -15,7 +15,6 @@ import { getForestalkById, addRingToForestalk } from '@/api/forestalkApi';
 const ForestalkView = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
   const [forestalk, setForestalk] = useState<Forestalk | null>(null);
   const [audioState, setAudioState] = useState<AudioPlayerState>({
     isPlaying: false,
@@ -28,13 +27,6 @@ const ForestalkView = () => {
   const [isSaving, setIsSaving] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const { toast } = useToast();
-  
-  // Auto-open recording mode if URL has action=add-ring
-  useEffect(() => {
-    if (searchParams.get('action') === 'add-ring') {
-      setIsRecording(true);
-    }
-  }, [searchParams]);
   
   const { 
     recorderState, 
@@ -253,9 +245,6 @@ const ForestalkView = () => {
         title: "Ring added",
         description: "Your voice has been added to the Forestalk",
       });
-      
-      // Remove the action=add-ring from URL
-      navigate(`/forestalk/${id}`);
     } catch (error) {
       console.error('Error saving recording:', error);
       toast({
@@ -301,6 +290,7 @@ const ForestalkView = () => {
             onClick={toggleRecording}
             className="bg-forest-accent text-forest-dark hover:bg-forest-accent/90"
           >
+            <Plus size={18} className="mr-1" />
             Add Ring
           </Button>
         )}

@@ -1,4 +1,3 @@
-
 import { ForestalkMood } from '@/types';
 
 // Define tree types that can be associated with different moods
@@ -50,20 +49,13 @@ export const getAllMoods = (): ForestalkMood[] => {
   return Object.keys(moodToAdjectives) as ForestalkMood[];
 };
 
-// Get a list of grouped moods for UI display
+// Keeping the function for backward compatibility
 export const getMoodGroups = (): { type: string; moods: ForestalkMood[] }[] => {
+  // Return all moods in a single group
   return [
     {
-      type: 'Positive',
-      moods: ['calm', 'inspired', 'hopeful', 'joyful', 'grateful', 'excited', 'peaceful', 'passionate', 'content', 'energetic', 'serene']
-    },
-    {
-      type: 'Neutral',
-      moods: ['reflective', 'curious', 'nostalgic', 'empathetic', 'determined']
-    },
-    {
-      type: 'Negative',
-      moods: ['melancholic', 'anxious', 'frustrated', 'confused', 'gloomy', 'worried']
+      type: 'All',
+      moods: getAllMoods()
     }
   ];
 };

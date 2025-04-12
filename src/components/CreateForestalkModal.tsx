@@ -1,5 +1,5 @@
+
 import React, { useState, useEffect } from 'react';
-import { X } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,7 +11,7 @@ import { useAudioRecorder } from '@/hooks/useAudioRecorder';
 import { generateTreeByMood } from '@/utils/moodBasedTrees';
 import { useToast } from '@/hooks/use-toast';
 import { createForestalk } from '@/api/forestalkApi';
-import { getMoodGroups } from '@/utils/moodBasedTrees';
+import { getAllMoods } from '@/utils/moodBasedTrees';
 
 interface CreateForestalkModalProps {
   isOpen: boolean;
@@ -29,7 +29,7 @@ const CreateForestalkModal: React.FC<CreateForestalkModalProps> = ({
   const [treeName, setTreeName] = useState('');
   const [step, setStep] = useState<'title' | 'mood' | 'tree' | 'record'>('title');
   const [isLoading, setIsLoading] = useState(false);
-  const moodGroups = getMoodGroups();
+  const allMoods = getAllMoods();
   
   const { 
     recorderState, 
@@ -160,18 +160,10 @@ const CreateForestalkModal: React.FC<CreateForestalkModalProps> = ({
             <SelectValue placeholder="Select a mood" />
           </SelectTrigger>
           <SelectContent className="bg-forest-medium border-forest-light/30 max-h-72">
-            {moodGroups.map(group => (
-              <div key={group.type} className="px-2 py-1.5">
-                <p className="text-xs font-semibold text-forest-highlight/70 mb-1">{group.type}</p>
-                {group.moods.map((m) => (
-                  <SelectItem key={m} value={m} className="text-forest-highlight">
-                    {m.charAt(0).toUpperCase() + m.slice(1)}
-                  </SelectItem>
-                ))}
-                {group !== moodGroups[moodGroups.length - 1] && (
-                  <div className="my-1 border-t border-forest-light/10"></div>
-                )}
-              </div>
+            {allMoods.map((m) => (
+              <SelectItem key={m} value={m} className="text-forest-highlight">
+                {m.charAt(0).toUpperCase() + m.slice(1)}
+              </SelectItem>
             ))}
           </SelectContent>
         </Select>
@@ -307,15 +299,6 @@ const CreateForestalkModal: React.FC<CreateForestalkModalProps> = ({
             {step === 'tree' && "Your Tree Identity"}
             {step === 'record' && "Record Your Voice"}
           </DialogTitle>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="absolute right-4 top-4 text-forest-highlight/60 hover:text-forest-highlight"
-            onClick={handleClose}
-            disabled={isLoading}
-          >
-            <X size={18} />
-          </Button>
         </DialogHeader>
         
         {renderStepContent()}

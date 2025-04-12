@@ -7,7 +7,7 @@ import CreateForestalkModal from '@/components/CreateForestalkModal';
 import { Forestalk, ForestalkMood, ForestalkFilter } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 import { getAllForestalks } from '@/api/forestalkApi';
-import { getMoodGroups } from '@/utils/moodBasedTrees';
+import { getAllMoods } from '@/utils/moodBasedTrees';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -25,7 +25,7 @@ const Index = () => {
   const [forestalks, setForestalks] = useState<Forestalk[]>([]);
   const [filter, setFilter] = useState<ForestalkFilter>({ mood: 'all' });
   const { toast } = useToast();
-  const moodGroups = getMoodGroups();
+  const allMoods = getAllMoods();
   
   // Load forestalks from Supabase
   useEffect(() => {
@@ -109,27 +109,17 @@ const Index = () => {
                 >
                   All Moods
                 </DropdownMenuItem>
+                <DropdownMenuSeparator className="bg-forest-light/10" />
+                {allMoods.map(mood => (
+                  <DropdownMenuItem
+                    key={mood}
+                    className={`text-forest-highlight hover:bg-forest-light/10 ${filter.mood === mood ? 'bg-forest-light/10' : ''}`}
+                    onClick={() => handleFilterChange(mood)}
+                  >
+                    {mood.charAt(0).toUpperCase() + mood.slice(1)}
+                  </DropdownMenuItem>
+                ))}
               </DropdownMenuGroup>
-              
-              {moodGroups.map(group => (
-                <React.Fragment key={group.type}>
-                  <DropdownMenuSeparator className="bg-forest-light/10" />
-                  <DropdownMenuLabel className="text-forest-highlight/70 text-xs">
-                    {group.type}
-                  </DropdownMenuLabel>
-                  <DropdownMenuGroup>
-                    {group.moods.map(mood => (
-                      <DropdownMenuItem
-                        key={mood}
-                        className={`text-forest-highlight hover:bg-forest-light/10 ${filter.mood === mood ? 'bg-forest-light/10' : ''}`}
-                        onClick={() => handleFilterChange(mood)}
-                      >
-                        {mood.charAt(0).toUpperCase() + mood.slice(1)}
-                      </DropdownMenuItem>
-                    ))}
-                  </DropdownMenuGroup>
-                </React.Fragment>
-              ))}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
