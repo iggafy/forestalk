@@ -18,7 +18,7 @@ const mapDbForestalkToForestalk = (
     id: dbForestalk.id,
     title: dbForestalk.title,
     treeName: dbForestalk.tree_name,
-    mood: dbForestalk.mood,
+    mood: dbForestalk.mood as ForestalkMood,
     rings: dbRings.map(mapDbRingToRing),
     createdAt: new Date(dbForestalk.created_at),
     lastActive: new Date(dbForestalk.last_active)
@@ -49,6 +49,7 @@ export const getAllForestalks = async (moodFilter?: ForestalkMood): Promise<Fore
       .order('last_active', { ascending: false });
       
     if (forestalksError) throw forestalksError;
+    if (!forestalksData) return [];
     
     const forestalks: Forestalk[] = [];
     
@@ -61,6 +62,7 @@ export const getAllForestalks = async (moodFilter?: ForestalkMood): Promise<Fore
         .order('created_at', { ascending: true });
         
       if (ringsError) throw ringsError;
+      if (!ringsData) continue;
       
       forestalks.push(
         mapDbForestalkToForestalk(dbForestalk, ringsData as DbRing[])
@@ -84,6 +86,7 @@ export const getForestalkById = async (id: string): Promise<Forestalk | null> =>
       .single();
       
     if (forestalkError) throw forestalkError;
+    if (!forestalkData) return null;
     
     const { data: ringsData, error: ringsError } = await supabase
       .from('rings')
@@ -92,6 +95,7 @@ export const getForestalkById = async (id: string): Promise<Forestalk | null> =>
       .order('created_at', { ascending: true });
       
     if (ringsError) throw ringsError;
+    if (!ringsData) return null;
     
     return mapDbForestalkToForestalk(
       forestalkData as DbForestalk, 
@@ -124,6 +128,7 @@ export const createForestalk = async (
       .single();
       
     if (forestalkError) throw forestalkError;
+    if (!forestalkData) throw new Error("Failed to create forestalk record");
     
     // 2. Upload the audio file to storage
     const fileName = `${forestalkData.id}/${Date.now()}.webm`;
@@ -159,6 +164,7 @@ export const createForestalk = async (
       .single();
       
     if (ringError) throw ringError;
+    if (!ringData) throw new Error("Failed to create ring record");
     
     // 6. Return the complete forestalk with the new ring
     return {
@@ -224,6 +230,7 @@ export const addRingToForestalk = async (
       .single();
       
     if (ringError) throw ringError;
+    if (!ringData) throw new Error("Failed to create ring record");
     
     // 5. Update the lastActive timestamp of the forestalk
     const { error: updateError } = await supabase

@@ -12,6 +12,7 @@ interface RecorderState {
   audioChunks: Blob[];
   audioBlob: Blob | null;
   audioUrl: string;
+  audioFile: File | null; // Add this property
 }
 
 export function useAudioRecorder() {
@@ -23,6 +24,7 @@ export function useAudioRecorder() {
     audioChunks: [],
     audioBlob: null,
     audioUrl: "",
+    audioFile: null, // Initialize the new property
   });
   
   const [error, setError] = useState<string>("");
@@ -71,14 +73,20 @@ export function useAudioRecorder() {
       });
       
       mediaRecorder.addEventListener("stop", () => {
-        const audioBlob = new Blob(audioChunks, { type: "audio/wav" });
+        const audioBlob = new Blob(audioChunks, { type: "audio/webm" });
         const audioUrl = URL.createObjectURL(audioBlob);
+        
+        // Create a File object from the Blob
+        const audioFile = new File([audioBlob], `recording-${Date.now()}.webm`, {
+          type: "audio/webm",
+        });
         
         setRecorderState(prev => ({
           ...prev,
           audioBlob,
           audioUrl,
-          audioChunks
+          audioChunks,
+          audioFile
         }));
       });
       
@@ -91,7 +99,8 @@ export function useAudioRecorder() {
         mediaRecorder,
         audioChunks,
         audioBlob: null,
-        audioUrl: ""
+        audioUrl: "",
+        audioFile: null
       });
       
       setError("");
@@ -151,7 +160,8 @@ export function useAudioRecorder() {
       mediaRecorder: null,
       audioChunks: [],
       audioBlob: null,
-      audioUrl: ""
+      audioUrl: "",
+      audioFile: null
     });
   };
   
