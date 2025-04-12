@@ -1,15 +1,13 @@
-
 import { ForestalkRing } from "@/types";
 
-// Generate random dummy waveform data
-export function generateRandomWaveform(length: number = 100): number[] {
-  const waveform: number[] = [];
-  for (let i = 0; i < length; i++) {
-    // Generate random values between 5 and 30 to simulate audio waveform
-    waveform.push(5 + Math.random() * 25);
-  }
-  return waveform;
-}
+// Generate random waveform data for visualization
+export const generateRandomWaveform = (): number[] => {
+  // Create an array of random numbers to represent a waveform
+  return Array.from({ length: 100 }, () => 
+    // Generate random integer values between 5 and 30
+    Math.round(Math.random() * 25 + 5)
+  );
+};
 
 // Calculate how long ago a date was
 export function timeAgo(date: Date): string {

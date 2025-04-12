@@ -149,8 +149,8 @@ export const createForestalk = async (
       .from('forestalk_audio')
       .getPublicUrl(fileName);
     
-    // 4. Generate waveform data (or extract it from the audio file in a real app)
-    const waveform = generateRandomWaveform();
+    // 4. Generate waveform data with integer values only
+    const waveform = generateRandomWaveform(); // This now returns integer values
     const colors = ["bg-forest-wave-red", "bg-forest-wave-green", "bg-forest-wave-amber", "bg-forest-wave-blue"];
     const color = colors[Math.floor(Math.random() * colors.length)];
     
@@ -215,8 +215,8 @@ export const addRingToForestalk = async (
       .from('forestalk_audio')
       .getPublicUrl(fileName);
     
-    // 3. Generate waveform data (or extract it from the audio file in a real app)
-    const waveform = generateRandomWaveform();
+    // 3. Generate waveform data with integer values only
+    const waveform = generateRandomWaveform(); // This now returns integer values
     const colors = ["bg-forest-wave-red", "bg-forest-wave-green", "bg-forest-wave-amber", "bg-forest-wave-blue"];
     const color = colors[Math.floor(Math.random() * colors.length)];
     
