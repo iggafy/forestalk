@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -41,7 +40,6 @@ const CreateForestalkModal: React.FC<CreateForestalkModalProps> = ({
   
   const { toast } = useToast();
   
-  // Generate tree name when mood changes
   useEffect(() => {
     if (mood) {
       setTreeName(generateTreeByMood(mood));
@@ -128,7 +126,6 @@ const CreateForestalkModal: React.FC<CreateForestalkModalProps> = ({
     }
   };
   
-  // Render different steps
   const renderTitleStep = () => (
     <div className="space-y-6 py-4">
       <div className="space-y-2">

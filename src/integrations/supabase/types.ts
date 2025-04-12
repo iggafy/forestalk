@@ -9,7 +9,71 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      forestalks: {
+        Row: {
+          created_at: string
+          id: string
+          last_active: string
+          mood: string
+          title: string
+          tree_name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          last_active?: string
+          mood: string
+          title: string
+          tree_name: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_active?: string
+          mood?: string
+          title?: string
+          tree_name?: string
+        }
+        Relationships: []
+      }
+      rings: {
+        Row: {
+          audio_url: string
+          color: string
+          created_at: string
+          duration: number
+          forestalk_id: string
+          id: string
+          waveform: number[]
+        }
+        Insert: {
+          audio_url: string
+          color: string
+          created_at?: string
+          duration: number
+          forestalk_id: string
+          id?: string
+          waveform: number[]
+        }
+        Update: {
+          audio_url?: string
+          color?: string
+          created_at?: string
+          duration?: number
+          forestalk_id?: string
+          id?: string
+          waveform?: number[]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rings_forestalk_id_fkey"
+            columns: ["forestalk_id"]
+            isOneToOne: false
+            referencedRelation: "forestalks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

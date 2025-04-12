@@ -12,7 +12,7 @@ interface RecorderState {
   audioChunks: Blob[];
   audioBlob: Blob | null;
   audioUrl: string;
-  audioFile: File | null; // Add this property
+  audioFile: File | null;
 }
 
 export function useAudioRecorder() {
@@ -24,7 +24,7 @@ export function useAudioRecorder() {
     audioChunks: [],
     audioBlob: null,
     audioUrl: "",
-    audioFile: null, // Initialize the new property
+    audioFile: null,
   });
   
   const [error, setError] = useState<string>("");

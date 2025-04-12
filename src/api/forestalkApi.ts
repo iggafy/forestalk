@@ -8,11 +8,15 @@ import {
   ForestalkRing 
 } from '@/types';
 import { generateRandomWaveform } from '@/utils/audioHelpers';
+import { Database } from '@/integrations/supabase/types';
+
+// Type for tables in the Supabase database
+type Tables = Database['public']['Tables'];
 
 // Mapper functions to convert between DB and frontend types
 const mapDbForestalkToForestalk = (
-  dbForestalk: DbForestalk, 
-  dbRings: DbRing[]
+  dbForestalk: Tables['forestalks']['Row'], 
+  dbRings: Tables['rings']['Row'][]
 ): Forestalk => {
   return {
     id: dbForestalk.id,
@@ -25,7 +29,7 @@ const mapDbForestalkToForestalk = (
   };
 };
 
-const mapDbRingToRing = (dbRing: DbRing): ForestalkRing => {
+const mapDbRingToRing = (dbRing: Tables['rings']['Row']): ForestalkRing => {
   return {
     id: dbRing.id,
     audioUrl: dbRing.audio_url,
@@ -54,7 +58,7 @@ export const getAllForestalks = async (moodFilter?: ForestalkMood): Promise<Fore
     const forestalks: Forestalk[] = [];
     
     // For each forestalk, get its rings
-    for (const dbForestalk of forestalksData as DbForestalk[]) {
+    for (const dbForestalk of forestalksData) {
       const { data: ringsData, error: ringsError } = await supabase
         .from('rings')
         .select('*')
@@ -65,7 +69,7 @@ export const getAllForestalks = async (moodFilter?: ForestalkMood): Promise<Fore
       if (!ringsData) continue;
       
       forestalks.push(
-        mapDbForestalkToForestalk(dbForestalk, ringsData as DbRing[])
+        mapDbForestalkToForestalk(dbForestalk, ringsData)
       );
     }
     
@@ -98,8 +102,8 @@ export const getForestalkById = async (id: string): Promise<Forestalk | null> =>
     if (!ringsData) return null;
     
     return mapDbForestalkToForestalk(
-      forestalkData as DbForestalk, 
-      ringsData as DbRing[]
+      forestalkData, 
+      ringsData
     );
   } catch (error) {
     console.error('Error fetching forestalk:', error);
@@ -171,7 +175,7 @@ export const createForestalk = async (
       id: forestalkData.id,
       title: forestalkData.title,
       treeName: forestalkData.tree_name,
-      mood: forestalkData.mood,
+      mood: forestalkData.mood as ForestalkMood,
       rings: [{
         id: ringData.id,
         audioUrl: ringData.audio_url,
