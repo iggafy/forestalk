@@ -34,12 +34,9 @@ const ForestalkCard: React.FC<ForestalkCardProps> = ({ forestalk, onClick }) => 
         </p>
         
         <Button
-          onClick={onClick}
-          className="px-5 py-2 rounded-full border border-forest-accent/30 text-forest-accent hover:bg-forest-accent/10 transition-colors inline-flex items-center"
-        >
-          <PlusCircle size={16} className="mr-2" />
-          View & Add Rings
-        </Button>
+  onClick={onClick}
+  className="px-5 py-2 rounded-full border border-forest-accent/30 text-forest-accent bg-forest-accent/10 transition-colors inline-flex items-center hover:bg-forest-accent/20">
+  <PlusCircle size={16} className="mr-2" />Add a Ring</Button>
       </div>
     </div>
   );
