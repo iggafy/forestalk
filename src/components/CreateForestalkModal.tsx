@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -258,26 +257,26 @@ const CreateForestalkModal: React.FC<CreateForestalkModalProps> = ({
             className="w-full h-10" 
           />
           
-          <Button 
-            onClick={handleSubmit}
-            disabled={!recorderState.audioUrl || isLoading}
-            className="w-full bg-forest-accent text-forest-dark hover:bg-forest-accent/90"
-          >
-            {isLoading ? "Creating..." : "Create Forestalk"}
-          </Button>
+          <div className="flex flex-col space-y-3 mt-4">
+            <Button 
+              onClick={handleSubmit}
+              disabled={!recorderState.audioUrl || isLoading}
+              className="w-full bg-forest-accent text-forest-dark hover:bg-forest-accent/90"
+            >
+              {isLoading ? "Creating..." : "Create Forestalk"}
+            </Button>
+            
+            <Button 
+              variant="outline" 
+              onClick={() => setStep('tree')}
+              disabled={isLoading}
+              className="w-full border-forest-light/30 text-forest-highlight"
+            >
+              Back
+            </Button>
+          </div>
         </div>
       )}
-      
-      <div className="pt-2">
-        <Button 
-          variant="outline" 
-          onClick={() => setStep('tree')}
-          disabled={isLoading}
-          className="w-full border-forest-light/30 text-forest-highlight"
-        >
-          Back
-        </Button>
-      </div>
     </div>
   );
   

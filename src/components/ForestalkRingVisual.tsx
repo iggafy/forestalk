@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Play, Pause } from 'lucide-react';
 import { Forestalk } from '@/types';
 import AudioWaveform from './AudioWaveform';
@@ -15,6 +15,19 @@ const ForestalkRingVisual: React.FC<ForestalkRingVisualProps> = ({ forestalk, is
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentRingIndex, setCurrentRingIndex] = useState<number | null>(null);
   const [playProgress, setPlayProgress] = useState(0);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  
+  // Create audio element reference
+  useEffect(() => {
+    audioRef.current = new Audio();
+    
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+    };
+  }, []);
   
   // Handle playback toggle
   const togglePlayback = (e: React.MouseEvent) => {
@@ -22,48 +35,77 @@ const ForestalkRingVisual: React.FC<ForestalkRingVisualProps> = ({ forestalk, is
     e.stopPropagation();
     
     if (isPlaying) {
-      setIsPlaying(false);
-      setCurrentRingIndex(null);
+      stopAudio();
     } else {
-      setIsPlaying(true);
-      // CHANGED: Start from innermost ring (last one in the array)
-      setCurrentRingIndex(forestalk.rings.length - 1);
-      // In a real app, this would trigger actual audio playback
+      startPlayback();
     }
   };
   
-  // Simulate progress for demo purposes
-  useEffect(() => {
-    let interval: number;
+  const startPlayback = () => {
+    // Start from innermost ring (last one in the array)
+    const startIndex = forestalk.rings.length - 1;
+    playRingAudio(startIndex);
+  };
+  
+  const playRingAudio = (index: number) => {
+    if (!audioRef.current || index < 0 || index >= forestalk.rings.length) return;
     
-    if (isPlaying && currentRingIndex !== null) {
-      interval = window.setInterval(() => {
-        setPlayProgress(prev => {
-          if (prev >= 1) {
-            // CHANGED: Move to next ring or stop (going from inner to outer)
-            const nextIndex = currentRingIndex - 1;
-            if (nextIndex >= 0) {
-              setCurrentRingIndex(nextIndex);
-              return 0;
-            } else {
-              setIsPlaying(false);
-              setCurrentRingIndex(null);
-              return 0;
-            }
-          }
-          return prev + 0.01;
-        });
-      }, 100);
-    }
+    const ring = forestalk.rings[index];
     
-    return () => {
-      if (interval) clearInterval(interval);
+    audioRef.current.src = ring.audioUrl;
+    audioRef.current.currentTime = 0;
+    
+    // Set up audio event listeners
+    audioRef.current.onplay = () => {
+      setIsPlaying(true);
+      setCurrentRingIndex(index);
     };
-  }, [isPlaying, currentRingIndex, forestalk.rings.length]);
+    
+    audioRef.current.ontimeupdate = () => {
+      if (audioRef.current) {
+        setPlayProgress(audioRef.current.currentTime / audioRef.current.duration);
+      }
+    };
+    
+    audioRef.current.onended = () => {
+      // Move to next ring (going from inner to outer)
+      const nextIndex = index - 1;
+      if (nextIndex >= 0) {
+        setTimeout(() => {
+          playRingAudio(nextIndex);
+        }, 300);
+      } else {
+        stopAudio();
+      }
+    };
+    
+    audioRef.current.play().catch(err => {
+      console.error("Audio playback error:", err);
+      stopAudio();
+    });
+  };
+  
+  const stopAudio = () => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+    }
+    setIsPlaying(false);
+    setCurrentRingIndex(null);
+    setPlayProgress(0);
+  };
+  
+  // Clean up audio on unmount
+  useEffect(() => {
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+      }
+    };
+  }, []);
   
   // Draw multiple concentric rings with waveforms
   const renderRings = () => {
-    // CHANGED: We now draw the rings in reverse order, so that the oldest ring is the innermost
+    // Draw the rings in reverse order, so that the oldest ring is the innermost
     return [...forestalk.rings].reverse().map((ring, index) => {
       const actualIndex = forestalk.rings.length - 1 - index;
       const ringSize = 100 - (index * (70 / forestalk.rings.length));
@@ -84,9 +126,12 @@ const ForestalkRingVisual: React.FC<ForestalkRingVisualProps> = ({ forestalk, is
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
-            setCurrentRingIndex(actualIndex);
-            setIsPlaying(true);
-            setPlayProgress(0);
+            
+            if (isPlaying && currentRingIndex === actualIndex) {
+              stopAudio();
+            } else {
+              playRingAudio(actualIndex);
+            }
           }}
         >
           <div 
@@ -124,11 +169,15 @@ const ForestalkRingVisual: React.FC<ForestalkRingVisualProps> = ({ forestalk, is
         >
           <button 
             className="w-12 h-12 rounded-full bg-forest-dark/70 flex items-center justify-center text-forest-accent transition-transform hover:scale-105"
+            aria-label={isPlaying ? "Pause" : "Play"}
           >
             {isPlaying ? <Pause size={20} /> : <Play size={20} className="ml-1" />}
           </button>
         </div>
       )}
+      
+      {/* Hidden audio element for playback */}
+      <audio style={{ display: 'none' }} />
     </div>
   );
 };
