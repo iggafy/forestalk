@@ -42,8 +42,8 @@ const ForestalkRingVisual: React.FC<ForestalkRingVisualProps> = ({ forestalk, is
   };
   
   const startPlayback = () => {
-    // Start from innermost ring (last one in the array)
-    const startIndex = forestalk.rings.length - 1;
+    // Changed: Start from outermost ring (first one in the array - oldest)
+    const startIndex = 0;
     playRingAudio(startIndex);
   };
   
@@ -68,9 +68,9 @@ const ForestalkRingVisual: React.FC<ForestalkRingVisualProps> = ({ forestalk, is
     };
     
     audioRef.current.onended = () => {
-      // Move to next ring (going from inner to outer)
-      const nextIndex = index - 1;
-      if (nextIndex >= 0) {
+      // Changed: Move to next ring (going from outer to inner - oldest to newest)
+      const nextIndex = index + 1;
+      if (nextIndex < forestalk.rings.length) {
         setTimeout(() => {
           playRingAudio(nextIndex);
         }, 300);
