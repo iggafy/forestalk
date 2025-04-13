@@ -326,25 +326,40 @@ const ForestalkDetailView: React.FC<ForestalkDetailViewProps> = ({
         <div className="mt-10">
           <h3 className="text-lg text-forest-accent mb-4">Rings</h3>
           <div className="space-y-2">
-            {[...forestalk.rings].map((ring, displayIndex) => {
-              const index = forestalk.rings.length - 1 - displayIndex;
+            {[...forestalk.rings].map((ring, index) => {
+              const ringNumber = index + 1;
               const isActiveRing = audioState.currentRingIndex === index;
-              return <div key={ring.id} className={`p-3 rounded-md flex items-center justify-between cursor-pointer 
-                             ${isActiveRing ? 'bg-forest-medium' : 'bg-forest-medium/40 hover:bg-forest-medium/70'}`} onClick={() => handleRingClick(index)}>
-                    <div className="flex items-center">
-                      <div className={`w-3 h-3 rounded-full mr-3 ${ring.color}`} />
-                      <div>
-                        <div className="text-forest-highlight">
-                          Ring {forestalk.rings.length - index}
-                        </div>
-                        <div className="text-xs text-forest-highlight/60">
-                          {formatDuration(ring.duration)} • {timeAgo(ring.createdAt)}
-                        </div>
+              
+              return (
+                <div 
+                  key={ring.id} 
+                  className={`p-3 rounded-md flex items-center justify-between cursor-pointer 
+                           ${isActiveRing 
+                              ? 'bg-forest-medium' 
+                              : 'bg-forest-medium/40 hover:bg-forest-medium/70'}`}
+                  onClick={() => handleRingClick(index)}
+                >
+                  <div className="flex items-center">
+                    <div 
+                      className={`w-3 h-3 rounded-full mr-3 ${ring.color}`}
+                    />
+                    <div>
+                      <div className="text-forest-highlight">
+                        Ring {ringNumber}
+                      </div>
+                      <div className="text-xs text-forest-highlight/60">
+                        {formatDuration(ring.duration)} • {timeAgo(ring.createdAt)}
                       </div>
                     </div>
-                    
-                    {isActiveRing && audioState.isPlaying ? <Pause size={16} className="text-forest-highlight/80" /> : <Play size={16} className="text-forest-highlight/80" />}
-                  </div>;
+                  </div>
+                  
+                  {isActiveRing && audioState.isPlaying ? (
+                    <Pause size={16} className="text-forest-highlight/80" />
+                  ) : (
+                    <Play size={16} className="text-forest-highlight/80" />
+                  )}
+                </div>
+              );
             })}
           </div>
         </div>

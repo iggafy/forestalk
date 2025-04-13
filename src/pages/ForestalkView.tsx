@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Play, Pause, Plus } from 'lucide-react';
@@ -35,7 +34,6 @@ const ForestalkView = () => {
     error: recordingError
   } = useAudioRecorder();
   
-  // Fetch forestalk data from Supabase
   useEffect(() => {
     const fetchForestalk = async () => {
       setIsLoading(true);
@@ -74,12 +72,10 @@ const ForestalkView = () => {
     fetchForestalk();
   }, [id, navigate, toast]);
   
-  // Audio playback control
   const playRing = (index: number) => {
     if (!forestalk) return;
     
     if (audioRef.current) {
-      // Set the audio source to the actual ring audio
       audioRef.current.src = forestalk.rings[index].audioUrl;
       audioRef.current.load();
     }
@@ -96,7 +92,6 @@ const ForestalkView = () => {
   const playAllRings = () => {
     if (!forestalk || forestalk.rings.length === 0) return;
     
-    // CHANGED: Start playback from the innermost ring (last in the array)
     const startIndex = forestalk.rings.length - 1;
     
     if (audioRef.current) {
@@ -118,7 +113,6 @@ const ForestalkView = () => {
       const audio = audioRef.current;
       audio.currentTime = 0;
       
-      // Update progress during playback
       const intervalId = setInterval(() => {
         if (audio.paused) {
           clearInterval(intervalId);
@@ -131,17 +125,14 @@ const ForestalkView = () => {
         }));
       }, 100);
       
-      // Handle playback end
       audio.onended = () => {
         clearInterval(intervalId);
         setAudioState(prev => {
           if (!forestalk) return prev;
           
-          // CHANGED: Go to the next ring (from inner to outer, i.e., from most recent to oldest)
           const nextRingIndex = prev.currentRingIndex !== null ? prev.currentRingIndex - 1 : null;
           
           if (nextRingIndex !== null && nextRingIndex >= 0) {
-            // Play next ring
             setTimeout(() => {
               playRing(nextRingIndex);
             }, 500);
@@ -231,7 +222,6 @@ const ForestalkView = () => {
         throw new Error("Failed to add ring");
       }
       
-      // Add the new ring to the forestalk
       const updatedForestalk = {
         ...forestalk,
         rings: [...forestalk.rings, newRing],
@@ -364,7 +354,6 @@ const ForestalkView = () => {
                   />
                 )}
                 
-                {/* Audio element for playback */}
                 <audio 
                   ref={audioRef}
                   preload="auto"
@@ -397,9 +386,8 @@ const ForestalkView = () => {
             <div className="mt-10">
               <h3 className="text-lg text-forest-accent mb-4">Rings</h3>
               <div className="space-y-2">
-                {/* CHANGED: Display rings from newest (outer) to oldest (inner) */}
-                {[...forestalk.rings].map((ring, displayIndex) => {
-                  const index = forestalk.rings.length - 1 - displayIndex;
+                {[...forestalk.rings].map((ring, index) => {
+                  const ringNumber = index + 1;
                   const isActiveRing = audioState.currentRingIndex === index;
                   
                   return (
@@ -417,7 +405,7 @@ const ForestalkView = () => {
                         />
                         <div>
                           <div className="text-forest-highlight">
-                            Ring {forestalk.rings.length - index}
+                            Ring {ringNumber}
                           </div>
                           <div className="text-xs text-forest-highlight/60">
                             {formatDuration(ring.duration)} • {timeAgo(ring.createdAt)}
