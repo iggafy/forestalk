@@ -4,9 +4,9 @@ import { Plus, Trees, Filter, Loader2, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import ForestalkCard from '@/components/ForestalkCard';
 import CreateForestalkModal from '@/components/CreateForestalkModal';
-import { Forestalk, ForestalkMood, ForestalkFilter, ForestalkRing } from '@/types';
+import { Forestalk, ForestalkMood, ForestalkFilter } from '@/types';
 import { useToast } from '@/hooks/use-toast';
-import { getAllForestalks, addRingToForestalk } from '@/api/forestalkApi';
+import { getAllForestalks } from '@/api/forestalkApi';
 import { getAllMoods } from '@/utils/moodBasedTrees';
 import {
   DropdownMenu,
@@ -20,8 +20,6 @@ import {
 import { Link } from 'react-router-dom';
 import { ScrollArea } from "@/components/ui/scroll-area";
 import ForestalkDetailView from '@/components/ForestalkDetailView';
-import RecordButton from '@/components/RecordButton';
-import { useAudioRecorder } from '@/hooks/useAudioRecorder';
 
 const Index = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -29,17 +27,8 @@ const Index = () => {
   const [forestalks, setForestalks] = useState<Forestalk[]>([]);
   const [filter, setFilter] = useState<ForestalkFilter>({ mood: 'all' });
   const [selectedForestalk, setSelectedForestalk] = useState<Forestalk | null>(null);
-  const [isRecording, setIsRecording] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
   const allMoods = getAllMoods();
-  
-  const { 
-    recorderState, 
-    startRecording, 
-    stopRecording,
-    error: recordingError
-  } = useAudioRecorder();
   
   // Load forestalks from Supabase
   useEffect(() => {
@@ -78,71 +67,20 @@ const Index = () => {
   
   const handleSelectForestalk = (forestalk: Forestalk) => {
     setSelectedForestalk(forestalk);
-    setIsRecording(false);
   };
   
   const handleCloseForestalk = () => {
     setSelectedForestalk(null);
-    setIsRecording(false);
   };
   
-  const handleStartRecording = () => {
-    if (!selectedForestalk) return;
-    setIsRecording(true);
-    startRecording();
-  };
-  
-  const handleCancelRecording = () => {
-    setIsRecording(false);
-  };
-  
-  const handleSaveRecording = async () => {
-    if (!selectedForestalk || !recorderState.audioFile) return;
+  const handleForestalkUpdate = (updatedForestalk: Forestalk) => {
+    // Update the selected forestalk
+    setSelectedForestalk(updatedForestalk);
     
-    setIsSaving(true);
-    
-    try {
-      const newRing = await addRingToForestalk(
-        selectedForestalk.id,
-        recorderState.audioFile,
-        Math.round(recorderState.recordingTime)
-      );
-      
-      if (!newRing) {
-        throw new Error("Failed to add ring");
-      }
-      
-      // Update the forestalk with the new ring
-      const updatedForestalk = {
-        ...selectedForestalk,
-        rings: [...selectedForestalk.rings, newRing],
-        lastActive: new Date()
-      };
-      
-      // Update the selected forestalk
-      setSelectedForestalk(updatedForestalk);
-      
-      // Update forestalks list to reflect the change
-      setForestalks(prev => 
-        prev.map(f => f.id === updatedForestalk.id ? updatedForestalk : f)
-      );
-      
-      setIsRecording(false);
-      
-      toast({
-        title: "Ring added",
-        description: "Your voice has been added to the Forestalk",
-      });
-    } catch (error) {
-      console.error('Error saving recording:', error);
-      toast({
-        title: "Error",
-        description: "Failed to save your recording. Please try again.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsSaving(false);
-    }
+    // Update the forestalks list
+    setForestalks(prev => 
+      prev.map(f => f.id === updatedForestalk.id ? updatedForestalk : f)
+    );
   };
   
   return (
@@ -168,84 +106,12 @@ const Index = () => {
       
       <main className="container max-w-7xl py-8 px-4">
         {selectedForestalk ? (
-          <div>
-            <div className="flex justify-between items-center mb-6">
-              <Button 
-                variant="ghost" 
-                onClick={handleCloseForestalk}
-                className="p-0 text-forest-highlight hover:text-forest-highlight hover:bg-transparent"
-              >
-                <X size={20} className="mr-2" />
-                Back to Forest
-              </Button>
-              
-              {!isRecording && (
-                <Button 
-                  onClick={handleStartRecording}
-                  className="bg-forest-accent text-forest-dark hover:bg-forest-accent/90"
-                >
-                  <Plus size={18} className="mr-1" />
-                  Add Ring
-                </Button>
-              )}
-            </div>
-            
-            {isRecording ? (
-              <div className="py-8 flex flex-col items-center">
-                <div className="mb-6 flex items-center">
-                  <RecordButton
-                    isRecording={recorderState.isRecording}
-                    isPaused={recorderState.isPaused}
-                    recordingTime={recorderState.recordingTime}
-                    onStartRecording={startRecording}
-                    onStopRecording={stopRecording}
-                  />
-                  <Button 
-                    variant="ghost" 
-                    onClick={handleCancelRecording}
-                    className="ml-4 text-forest-highlight hover:text-forest-highlight hover:bg-transparent"
-                  >
-                    <X size={20} />
-                    Cancel
-                  </Button>
-                </div>
-                
-                {recordingError && (
-                  <p className="text-red-400 text-sm mb-4">{recordingError}</p>
-                )}
-                
-                {recorderState.audioUrl && (
-                  <div className="w-full max-w-md space-y-4">
-                    <p className="text-center text-forest-highlight/80">Preview your recording:</p>
-                    <audio 
-                      src={recorderState.audioUrl} 
-                      controls 
-                      className="w-full h-10" 
-                    />
-                    
-                    <div className="flex space-x-3">
-                      <Button 
-                        variant="outline" 
-                        onClick={handleCancelRecording}
-                        disabled={isSaving}
-                        className="flex-1 border-forest-light/30 text-forest-highlight"
-                      >
-                        Cancel
-                      </Button>
-                      <Button 
-                        onClick={handleSaveRecording}
-                        disabled={isSaving}
-                        className="flex-1 bg-forest-accent text-forest-dark hover:bg-forest-accent/90"
-                      >
-                        {isSaving ? "Saving..." : "Add to Forestalk"}
-                      </Button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <ForestalkDetailView forestalk={selectedForestalk} />
-            )}
+          <div className="max-w-2xl mx-auto">
+            <ForestalkDetailView 
+              forestalk={selectedForestalk} 
+              onForestalkUpdate={handleForestalkUpdate}
+              onClose={handleCloseForestalk}
+            />
           </div>
         ) : (
           <>
