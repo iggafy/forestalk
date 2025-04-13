@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { Play, Pause, X, Mic } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -64,7 +65,7 @@ const ForestalkDetailView: React.FC<ForestalkDetailViewProps> = ({
 
   const playAllRings = () => {
     if (!forestalk || forestalk.rings.length === 0) return;
-    const startIndex = forestalk.rings.length - 1;
+    const startIndex = 0; // Start from the oldest ring (index 0)
     if (audioRef.current) {
       audioRef.current.src = forestalk.rings[startIndex].audioUrl;
       audioRef.current.load();
@@ -95,8 +96,8 @@ const ForestalkDetailView: React.FC<ForestalkDetailViewProps> = ({
         clearInterval(intervalId);
         setAudioState(prev => {
           if (!forestalk) return prev;
-          const nextRingIndex = prev.currentRingIndex !== null ? prev.currentRingIndex - 1 : null;
-          if (nextRingIndex !== null && nextRingIndex >= 0) {
+          const nextRingIndex = prev.currentRingIndex !== null ? prev.currentRingIndex + 1 : null;
+          if (nextRingIndex !== null && nextRingIndex < forestalk.rings.length) {
             setTimeout(() => {
               playRing(nextRingIndex);
             }, 500);
@@ -317,7 +318,7 @@ const ForestalkDetailView: React.FC<ForestalkDetailViewProps> = ({
         
         {!isRecording && audioState.currentRingIndex !== null && (
           <div className="text-forest-highlight/80 text-sm">
-            Ring {forestalk.rings.length - audioState.currentRingIndex} / {forestalk.rings.length}
+            Ring {audioState.currentRingIndex + 1} / {forestalk.rings.length}
           </div>
         )}
       </div>
@@ -326,7 +327,7 @@ const ForestalkDetailView: React.FC<ForestalkDetailViewProps> = ({
         <div className="mt-10">
           <h3 className="text-lg text-forest-accent mb-4">Rings</h3>
           <div className="space-y-2">
-            {[...forestalk.rings].map((ring, index) => {
+            {forestalk.rings.map((ring, index) => {
               const ringNumber = index + 1;
               const isActiveRing = audioState.currentRingIndex === index;
               
